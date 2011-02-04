@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?> 
+
+<wsdl:definitions	name='controller' 
+				targetNamespace='http://www.pure360.com/paint' 
+				xmlns:tns='http://www.pure360.com/paint' 
+				xmlns:soap='http://schemas.xmlsoap.org/wsdl/soap/' 
+				xmlns:xsd='http://www.w3.org/2001/XMLSchema' 
+				xmlns:soapenc='http://schemas.xmlsoap.org/soap/encoding/' 
+				xmlns:wsdl='http://schemas.xmlsoap.org/wsdl/' 
+				xmlns='http://schemas.xmlsoap.org/wsdl/' > 
+
+	<wsdl:types>
+		<xsd:schema elementFormDefault="qualified" targetNamespace="http://www.pure360.com/paint" >
+			<!--
+			Type: PaintArray
+			
+			The PaintArray type is a type mapping from the PHP associative array a.k.a map/collection/hashtable that enables nested arrays of name-value
+			pairs to be sent and received through the single handleRequest operation.
+			-->	
+			<xsd:complexType name="paintArray">
+				<xsd:sequence>
+					<xsd:element name="pairs" type="tns:paintKeyValuePair" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="paintKeyValuePair">
+
+				<xsd:all>
+					<xsd:element name="key" type="xsd:string"/>
+					<xsd:element name="value">
+						<xsd:complexType>
+							<xsd:sequence>
+								<!-- 
+								You will either receive a string value or an array of more paintKeyValuePairs.  A sequence is being used rather than a choice due to 
+								issues with .NET's generated stub files
+								-->					
+								<xsd:element name="str" type="xsd:string" minOccurs="0"/>
+								<xsd:element name="arr" type="tns:paintArray" minOccurs="0"/>
+							</xsd:sequence>												
+						</xsd:complexType>
+
+					</xsd:element>
+				</xsd:all>
+			</xsd:complexType>				
+		</xsd:schema>
+	</wsdl:types>		
+		
+	<wsdl:message name='paintRequest'> 	
+		<!--
+		Param: contextId
+		
+		Context ID is the unique string that identifies your current session
+		in PAINT.  It is obtained by using the "login" process on "bean_facade_context"
+		and must be passed in all communications to PAINT.
+		-->
+		<wsdl:part name='contextId' type='xsd:string'/> 
+		<!--
+		Param: className
+		
+		Class name identifies the name of the facade that contains the process being requested.
+		Note that all facade classes begin "bean_facade_". 
+		-->		
+		<wsdl:part name='className' type='xsd:string'/> 
+		<!--
+		Param: processName
+		
+		Process name is the name of the operation on the class that should be executed with
+		the data recieved e.g. load, store, remove.
+		-->
+		<wsdl:part name='processName' type='xsd:string'/> 
+		<!--
+		Param: entityData
+		
+		Entity data is an associative array of data keyed by name.  That is, each element name
+		represents the name of an input field, and its corresponding element value the input field
+		value.  This data will be received and processed with the intention of updating the 
+		entity or search bean that is linked to the requested facade class.
+		-->
+
+		<wsdl:part name='entityData' type='tns:paintArray'/> 
+		<!--
+		Param: processData
+		
+		Process data is an associative array much like entityData, but represents input fields 
+		that are not being loaded onto the entity.  An example of such data would be the 
+		destination email address for an email test.  This data will be used by the facade but 
+		not loaded onto an entity or search bean at any point.
+		-->		
+		<wsdl:part name='processData' type='tns:paintArray'/> 
+	</wsdl:message> 
+	<wsdl:message name='paintResponse'> 
+		<!--
+		Param: Result
+		
+		Result is an associative array of data.  Bean data is represented as an array element
+		keyed by the class name of the bean.  With this element is another associative array of
+		bean data.  Other data is represented as simple array elements.
+		-->		
+		<wsdl:part name='Result' type='tns:paintArray'/>
+	</wsdl:message>
+
+	<wsdl:portType name='paintPortType'> 
+		<wsdl:operation name='handleRequest'> 
+			<wsdl:input message='tns:paintRequest'/> 
+			<wsdl:output message='tns:paintResponse'/> 
+		</wsdl:operation> 
+	</wsdl:portType> 
+
+	<wsdl:binding name='paintBinding' type='tns:paintPortType'> 
+		<soap:binding style='rpc' transport='http://schemas.xmlsoap.org/soap/http'/> 
+	
+		<wsdl:operation name='handleRequest'> 
+			<soap:operation soapAction='urn:localhost-paint#handleRequest'/> 
+
+			<wsdl:input> 
+				<soap:body	use='literal' 
+							namespace='urn:localhost-paint' 
+							encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/> 
+			</wsdl:input>
+
+			<wsdl:output> 
+				<soap:body	use='literal'
+							namespace='urn:localhost-paint' 
+							encodingStyle='http://schemas.xmlsoap.org/soap/encoding/'/> 
+			</wsdl:output> 
+		</wsdl:operation> 
+	</wsdl:binding> 
+
+	<wsdl:service name='paintService'> 
+		<wsdl:port name='paintPort' binding='tns:paintBinding'> 
+			<soap:address location='http://paint.pure360.com/_bus/request.soap?use=literal'/> 
+		</wsdl:port> 
+	</wsdl:service>
+
+</wsdl:definitions>

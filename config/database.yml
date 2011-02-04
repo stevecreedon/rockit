@@ -1,0 +1,21 @@
+development:
+      schema: DW_DEV
+      adapter: ibm_db
+      encoding: utf8
+      host: localhost
+      database: IW
+      username: SITES_ES
+      password: Password1
+      pool: 5
+      
+test:
+    schema: DW_TEST
+    adapter: ibm_db
+    encoding: utf8
+    host: localhost
+    database: IW
+    username: SITES_ES
+    password: Password1
+    pool: 5
+
+      
